@@ -1,0 +1,17 @@
+blank_issues_enabled: true
+contact_links:
+  - name: ⚠️ Preciso de aconselhamento fiscal a sério
+    url: https://www.occ.pt/
+    about: "Esta ferramenta não o pode aconselhar nem assinar o seu Modelo 3. Procure um contabilista certificado (OCC)."
+  - name: ⚖️ O vendedor recusa a garantia
+    url: https://www.deco.proteste.pt/
+    about: "A DECO PROteste e os centros de arbitragem de consumo resolvem disputas de garantia. Este repositório não."
+  - name: 🏛️ A posição oficial / o simulador
+    url: https://info.portaldasfinancas.gov.pt/
+    about: "O Portal das Finanças é a única autoridade sobre fiscalidade portuguesa. Este projeto não é."
+  - name: 🧮 Estimar o IRS que estes recibos alimentam
+    url: https://github.com/yeer0s/AoCentimo
+    about: "Ao Cêntimo — o motor de IRS offline, projeto irmão deste."
+  - name: 🇵🇹 Ferramentas e guias gratuitos
+    url: https://mowei.pt
+    about: "Mowei — energia, telecom, seguros, banca, crédito, apoios."

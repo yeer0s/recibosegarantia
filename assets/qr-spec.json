@@ -1,0 +1,108 @@
+{
+  "_meta": {
+    "asset": "AT QR-code field specification (Portaria n.o 195/2020)",
+    "source": "Especificacoes Tecnicas Codigo de Barras Bidimensional (Codigo QR), Autoridade Tributaria e Aduaneira, 18 pages",
+    "legal_basis": "Decreto-Lei n.o 28/2019, de 15 de fevereiro, art. 4.o; Portaria n.o 195/2020, de 13 de agosto",
+    "as_of": "2026-07-24",
+    "extraction_note": "Field names, max lengths and instructions were read from the AT specification document itself, not from a secondary summary. Earlier drafts of this skill used a practitioner blog post and consequently omitted the J*, K*, L, M and P fields entirely, which silently disabled reconciliation for every Azores, Madeira, stamp-duty and withholding invoice.",
+    "verify_before_relying": "Re-read the AT specification before trusting this for a filing. Field semantics track the SAF-T (PT) schema and can change with it."
+  },
+
+  "separator": "*",
+  "pair_separator": ":",
+  "order_is_significant": true,
+  "order_note": "Ponto 3 b) of the specification: fields are concatenated in the table order. This parser does not require the order, but a field appearing out of order is a sign the payload was reassembled by something other than a certified program.",
+
+  "fields": {
+    "A":  {"name": "nif_emitente",        "max": 9,  "required": true,  "desc": "NIF do emitente, sem prefixo do pais."},
+    "B":  {"name": "nif_adquirente",      "max": 30, "required": true,  "desc": "NIF do adquirente. 999999990 = consumidor final. Max 30 chars because a foreign buyer's tax id may appear here - it is NOT always a 9-digit Portuguese NIF."},
+    "C":  {"name": "pais_adquirente",     "max": 12, "required": true,  "desc": "Country do SAF-T (PT)."},
+    "D":  {"name": "tipo_documento",      "max": 2,  "required": true,  "desc": "Tipologia SAF-T (PT)."},
+    "E":  {"name": "estado_documento",    "max": 1,  "required": true,  "desc": "Tipologia SAF-T (PT)."},
+    "F":  {"name": "data_documento",      "max": 8,  "required": true,  "desc": "YYYYMMDD. Exactly 8 characters."},
+    "G":  {"name": "numero_documento",    "max": 60, "required": true,  "desc": "Identificacao unica do documento."},
+    "H":  {"name": "atcud",               "max": 70, "required": true,  "desc": "Codigo unico de documento."},
+    "I1": {"name": "espaco_fiscal_pt",    "max": 5,  "required": false, "desc": "TaxCountryRegion. 'PT' continente. '0' quando o documento nao indica taxa de IVA."},
+    "I2": {"name": "base_isenta_pt",      "max": 16, "required": false, "role": "base"},
+    "I3": {"name": "base_reduzida_pt",    "max": 16, "required": false, "role": "base"},
+    "I4": {"name": "iva_reduzida_pt",     "max": 16, "required": false, "role": "iva"},
+    "I5": {"name": "base_intermedia_pt",  "max": 16, "required": false, "role": "base"},
+    "I6": {"name": "iva_intermedia_pt",   "max": 16, "required": false, "role": "iva"},
+    "I7": {"name": "base_normal_pt",      "max": 16, "required": false, "role": "base"},
+    "I8": {"name": "iva_normal_pt",       "max": 16, "required": false, "role": "iva"},
+    "J1": {"name": "espaco_fiscal_ac",    "max": 5,  "required": false, "desc": "PT-AC (Acores)."},
+    "J2": {"name": "base_isenta_ac",      "max": 16, "required": false, "role": "base"},
+    "J3": {"name": "base_reduzida_ac",    "max": 16, "required": false, "role": "base"},
+    "J4": {"name": "iva_reduzida_ac",     "max": 16, "required": false, "role": "iva"},
+    "J5": {"name": "base_intermedia_ac",  "max": 16, "required": false, "role": "base"},
+    "J6": {"name": "iva_intermedia_ac",   "max": 16, "required": false, "role": "iva"},
+    "J7": {"name": "base_normal_ac",      "max": 16, "required": false, "role": "base"},
+    "J8": {"name": "iva_normal_ac",       "max": 16, "required": false, "role": "iva"},
+    "K1": {"name": "espaco_fiscal_ma",    "max": 5,  "required": false, "desc": "PT-MA (Madeira)."},
+    "K2": {"name": "base_isenta_ma",      "max": 16, "required": false, "role": "base"},
+    "K3": {"name": "base_reduzida_ma",    "max": 16, "required": false, "role": "base"},
+    "K4": {"name": "iva_reduzida_ma",     "max": 16, "required": false, "role": "iva"},
+    "K5": {"name": "base_intermedia_ma",  "max": 16, "required": false, "role": "base"},
+    "K6": {"name": "iva_intermedia_ma",   "max": 16, "required": false, "role": "iva"},
+    "K7": {"name": "base_normal_ma",      "max": 16, "required": false, "role": "base"},
+    "K8": {"name": "iva_normal_ma",       "max": 16, "required": false, "role": "iva"},
+    "L":  {"name": "nao_sujeito",         "max": 16, "required": false, "role": "base", "desc": "Nao sujeito / nao tributavel em IVA. Counts toward the document total."},
+    "M":  {"name": "imposto_selo",        "max": 16, "required": false, "role": "tax",  "desc": "Imposto do Selo. Counts toward N, which is NOT IVA alone."},
+    "N":  {"name": "total_impostos",      "max": 16, "required": true,  "desc": "TaxPayable = total de IVA E Imposto do Selo."},
+    "O":  {"name": "total_com_impostos",  "max": 16, "required": true,  "desc": "GrossTotal."},
+    "P":  {"name": "retencoes_na_fonte",  "max": 16, "required": false, "desc": "WithholdingTaxAmount. NOT part of O."},
+    "Q":  {"name": "hash",                "max": 4,  "required": true,  "desc": "4 caracteres do hash, Portaria n.o 363/2010."},
+    "R":  {"name": "num_certificado",     "max": 4,  "required": true,  "desc": "N.o do certificado atribuido pela AT."},
+    "S":  {"name": "outras_informacoes",  "max": 65, "required": false, "desc": "Campo livre. Nao pode conter o caracter asterisco."}
+  },
+
+  "reconciliation": {
+    "formula_N": "N = sum(I4,I6,I8, J4,J6,J8, K4,K6,K8) + M",
+    "formula_O": "O = sum(I2,I3,I5,I7, J2,J3,J5,J7, K2,K3,K5,K7) + L + N",
+    "P_excluded": "Retencoes na fonte are withheld from payment, not added to the document total.",
+    "verified": "Both formulas reproduce all four worked examples in the AT specification exactly, to the cent, including the 513600.58 invoice that spans continente + Acores + Madeira + imposto do selo + retencao."
+  },
+
+  "consumidor_final": "999999990",
+
+  "tipo_documento": {
+    "deductible_candidates": ["FT", "FS", "FR"],
+    "credit_note": ["NC"],
+    "not_a_purchase": ["PF", "GT", "GR", "GA", "GC", "GD", "AA", "DA", "ND", "RP", "RE", "CS", "LD", "RA"],
+    "note": "FT fatura, FS fatura simplificada, FR fatura-recibo, NC nota de credito (negative), PF pro-forma (NOT a purchase - no deduction, no guarantee), GT/GR guias de transporte/remessa. A pro-forma or transport document must never produce a deduction row: the AT's own examples 3 and 4 are exactly these, which is why they are in the golden corpus.",
+    "source": "Tipologia SAF-T (PT), referenced by the QR specification rather than restated in it."
+  },
+
+  "estado_documento": {
+    "N": {"label": "Normal", "deductible": true},
+    "A": {"label": "Anulado", "deductible": false, "reason": "An annulled document confers nothing."},
+    "F": {"label": "Faturado", "deductible": "UNKNOWN"},
+    "S": {"label": "Autofaturacao", "deductible": "UNKNOWN"},
+    "R": {"label": "Resumo (outros documentos)", "deductible": "UNKNOWN"},
+    "unknown_policy": "Any state whose deduction consequence is not ESTABLISHED is flagged and not trusted. The QR specification defers the state list to the SAF-T (PT) typology and does not itself say which states carry a deduction, so N and A are the only two this skill will act on. Treating F or S as deductible would be a guess with money attached.",
+    "source": "Tipologia SAF-T (PT). Deduction consequence of F/S/R NOT established from a primary source at time of writing - see documented_gaps."
+  },
+
+  "documented_gaps": [
+    {
+      "gap": "Estado do documento F / S / R",
+      "modelled": "flagged as unknown, never treated as deductible",
+      "direction": "UNDER-claims: a legitimately deductible F document is flagged for review rather than passed. Chosen over the opposite error, which would silently claim a deduction that may not exist."
+    },
+    {
+      "gap": "QR authenticity",
+      "modelled": false,
+      "direction": "Q (4 hash chars) and R (certificate number) are parsed and never verified. This skill cannot distinguish a genuine AT-generated QR from a hand-authored string. It validates STRUCTURE and ARITHMETIC, not authenticity."
+    },
+    {
+      "gap": "IVA rate legality",
+      "modelled": "ratio check only",
+      "direction": "The declared IVA is checked against the declared base for plausibility against the statutory rates, but the correct rate depends on the goods sold, which the QR does not contain. A wrong-but-consistent rate can pass."
+    },
+    {
+      "gap": "Field order",
+      "modelled": false,
+      "direction": "Ponto 3 b) requires table order. This parser accepts any order, so a reassembled payload is not detected on that basis alone."
+    }
+  ]
+}

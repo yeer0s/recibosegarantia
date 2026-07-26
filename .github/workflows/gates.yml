@@ -1,0 +1,107 @@
+name: gates
+
+# Every claim the README makes is checked here, on every push, across four
+# Python versions and three operating systems. A reader does not have to take
+# "zero network calls" or "verified against the AT's own examples" on trust.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    # Monthly. Statutory periods and QR field semantics rot without a single
+    # line of this repo changing; a scheduled run turns silent decay into a
+    # visible red build.
+    - cron: "0 6 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gates:
+    name: ${{ matrix.os }} · py${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: No dependencies to install
+        run: |
+          python -c "import sys; print(sys.version)"
+          echo "Standard library only, by design. openpyxl is optional: without it"
+          echo "the spreadsheet writer falls back to CSV with identical columns."
+
+      - name: QR decode + validation (AT worked examples + adversarial corpus)
+        run: python scripts/fatura.py --selftest
+
+      - name: Consumer guarantee periods and iCal (DL 84/2021)
+        run: python scripts/garantia.py --selftest
+
+      - name: Spreadsheet build (CSV fallback path)
+        run: python scripts/planilha.py --selftest
+
+      - name: Offline audit, and proof the audit can fail
+        run: |
+          python scripts/offline_audit.py --selftest
+          python scripts/offline_audit.py
+
+      - name: Unified gate
+        run: python scripts/sweep.py
+
+  with-openpyxl:
+    name: xlsx path · openpyxl installed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install the one optional dependency
+        run: pip install openpyxl
+      - name: The writer must work on BOTH paths, not just the fallback
+        run: |
+          python scripts/planilha.py --selftest
+          python scripts/sweep.py
+
+  no-network:
+    name: proof · zero network calls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Static proof — AST audit of every shipped Python file
+        run: |
+          python scripts/offline_audit.py --selftest   # the audit can fail
+          python scripts/offline_audit.py              # and it doesn't
+
+      - name: Dynamic proof — every gate re-run with sockets disabled
+        run: |
+          cat > sitecustomize.py <<'PY'
+          # Hard-disable the socket layer. If any path in this project tried to
+          # reach the network, the gates below would crash rather than quietly
+          # succeed. This is the "runs fully offline" claim, enforced.
+          import socket
+          class _Blocked(socket.socket):
+              def __init__(self, *a, **k):
+                  raise OSError("network access is disabled: this project runs offline")
+          socket.socket = _Blocked
+          socket.create_connection = lambda *a, **k: (_ for _ in ()).throw(
+              OSError("network access is disabled"))
+          PY
+          echo "--- sockets disabled; running every gate ---"
+          PYTHONPATH=. python scripts/fatura.py --selftest
+          PYTHONPATH=. python scripts/garantia.py --selftest
+          PYTHONPATH=. python scripts/planilha.py --selftest
+          PYTHONPATH=. python scripts/sweep.py
+          echo "All gates passed with the network layer disabled."

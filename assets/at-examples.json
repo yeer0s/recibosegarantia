@@ -1,0 +1,74 @@
+{
+  "_meta": {
+    "asset": "Golden corpus - the AT's OWN worked examples",
+    "why_this_matters": "These four payloads are transcribed verbatim from section 5 of the AT's QR specification. They were written by the tax authority, not by the author of this engine. That makes them a genuinely INDEPENDENT oracle: if the reconciliation logic here is wrong, these fail, and no amount of internally-consistent hand-derived test data can paper over it. A sibling project (AoCentimo) shipped a corpus that was entirely self-derived and was consequently blind to a wrong constant for a year; this corpus exists so that failure mode is not repeated.",
+    "source": "Especificacoes Tecnicas Codigo de Barras Bidimensional (Codigo QR), AT, seccao 5, exemplos 1-4",
+    "as_of": "2026-07-24",
+    "transcription": "Payload strings copied character-for-character from the specification. Do NOT 'tidy' them.",
+    "count": 4
+  },
+  "cases": [
+    {
+      "id": "at_ex1_fatura_completa",
+      "label": "Exemplo 1 - Fatura spanning continente + Acores + Madeira, com imposto do selo e retencao",
+      "payload": "A:123456789*B:999999990*C:PT*D:FT*E:N*F:20191231*G:FTAB2019/0035*H:CSDF7T5H-0035*I1:PT*I2:12000.00*I3:15000.00*I4:900.00*I5:50000.00*I6:6500.00*I7:80000.00*I8:18400.00*J1:PT-AC*J2:10000.00*J3:25000.56*J4:1000.02*J5:75000.00*J6:6750.00*J7:100000.00*J8:18000.00*K1:PT-MA*K2:5000.00*K3:12500.00*K4:625.00*K5:25000.00*K6:3000.00*K7:40000.00*K8:8800.00*L:100.00*M:25.00*N:64000.02*O:513600.58*P:100.00*Q:kLp0*R:9999*S:TB;PT00000000000000000000000;513500.58",
+      "expected": {
+        "reconciles": true,
+        "base_total": "449600.56",
+        "tax_total": "64000.02",
+        "grand_total": "513600.58",
+        "tipo_documento": "FT",
+        "nif_adquirente_given": false,
+        "must_flag": ["SEM_NIF_DEDUCAO_PERDIDA"]
+      },
+      "why_included": "The only fixture that exercises J*, K*, L and M together. An engine that ignores any of those still reconciles the simple cases and fails here."
+    },
+    {
+      "id": "at_ex2_fatura_simplificada",
+      "label": "Exemplo 2 - Fatura simplificada, 0.80 EUR (a coffee)",
+      "payload": "A:123456789*B:999999990*C:PT*D:FS*E:N*F:20190812*G:FSCDVF/12345*H:CDF7T5HD-12345*I1:PT*I7:0.65*I8:0.15*N:0.15*O:0.80*Q:YhGV*R:9999*S:NU;0.80",
+      "expected": {
+        "reconciles": true,
+        "base_total": "0.65",
+        "tax_total": "0.15",
+        "grand_total": "0.80",
+        "tipo_documento": "FS",
+        "nif_adquirente_given": false,
+        "must_flag": ["SEM_NIF_DEDUCAO_PERDIDA"]
+      },
+      "why_included": "Cent-scale amounts, and the single most common real-world receipt shape: a till slip with no NIF, where the deduction is simply lost."
+    },
+    {
+      "id": "at_ex3_proforma",
+      "label": "Exemplo 3 - Fatura pro-forma (NOT a purchase)",
+      "payload": "A:500000000*B:123456789*C:PT*D:PF*E:N*F:20190123*G:PFG2019CB/145789*H:HB6FT7RV-145789*I1:PT*I2:12345.34*I3:12532.65*I4:751.96*I5:52789.00*I6:6862.57*I7:32425.69*I8:7457.91*N:15072.44*O:125165.12*Q:r/fY*R:9999",
+      "expected": {
+        "reconciles": true,
+        "base_total": "110092.68",
+        "tax_total": "15072.44",
+        "grand_total": "125165.12",
+        "tipo_documento": "PF",
+        "must_flag": ["TIPO_NAO_E_COMPRA"],
+        "deducao_possivel": false,
+        "garantia": null
+      },
+      "why_included": "A pro-forma arithmetically reconciles perfectly and is NOT a purchase. Nothing may be deducted and no guarantee period starts. An engine that trusts arithmetic alone will happily produce both."
+    },
+    {
+      "id": "at_ex4_documento_transporte",
+      "label": "Exemplo 4 - Documento de transporte, sem valores, I1:0",
+      "payload": "A:500000000*B:123456789*C:PT*D:GT*E:N*F:20190720*G:GTG234CB/50987*H:GTVX4Y8B-50987*I1:0*N:0.00*O:0.00*Q:5uIg*R:9999",
+      "expected": {
+        "reconciles": true,
+        "base_total": "0.00",
+        "tax_total": "0.00",
+        "grand_total": "0.00",
+        "tipo_documento": "GT",
+        "must_flag": ["TIPO_NAO_E_COMPRA"],
+        "deducao_possivel": false,
+        "garantia": null
+      },
+      "why_included": "Legitimately carries no amounts at all and sets I1:0. A naive 'no breakdown means something is wrong' rule fires falsely here, so the engine must distinguish 'no amounts because this is not a valued document' from 'no amounts because the read failed'."
+    }
+  ]
+}

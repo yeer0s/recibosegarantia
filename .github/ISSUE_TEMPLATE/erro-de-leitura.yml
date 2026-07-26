@@ -1,0 +1,53 @@
+name: "📉 Um número ou uma citação errada"
+description: "Um prazo, artigo ou campo que contradiz a fonte que cita. A contribuição mais valiosa."
+title: "[erro] "
+labels: ["erro-de-facto", "prioridade"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado — é a coisa mais útil que pode enviar a este projeto.
+
+        Um prazo errado faz alguém perder uma garantia; uma reconciliação errada faz
+        alguém perder uma dedução. **Nunca cole um NIF, IBAN ou morada reais** — altere
+        os dígitos, o bug reproduz-se na mesma.
+  - type: dropdown
+    id: kind
+    attributes:
+      label: O que está errado
+      options:
+        - "Um prazo de garantia (DL 84/2021)"
+        - "Uma reconciliação de valores (campos do QR)"
+        - "A classificação de um NIF (singular / coletiva)"
+        - "A semântica de um campo do QR"
+        - "Um artigo mal citado"
+        - "Outro"
+    validations: {required: true}
+  - type: input
+    id: where
+    attributes:
+      label: Onde vive
+      placeholder: "assets/qr-spec.json → fields.N   ou   scripts/garantia.py → KINDS"
+    validations: {required: true}
+  - type: input
+    id: shipped
+    attributes:
+      label: O que o projeto diz hoje
+    validations: {required: true}
+  - type: input
+    id: correct
+    attributes:
+      label: O que devia dizer
+    validations: {required: true}
+  - type: textarea
+    id: source
+    attributes:
+      label: A fonte
+      description: "Artigo e diploma, ou a página da especificação da AT. De preferência com link."
+      placeholder: "DL 84/2021 art. 12.o n.o 3  /  Especificacoes Tecnicas Codigo QR, pag. 11  /  https://..."
+    validations: {required: true}
+  - type: textarea
+    id: payload
+    attributes:
+      label: Payload QR que reproduz (opcional, com dígitos alterados)
+      render: text
