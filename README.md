@@ -100,16 +100,16 @@ answer and it is **wrong for Portugal**:
 | Kind | Liability | Presumption | Article |
 |---|---|---|---|
 | Bem móvel novo | **3 years** | 2 years | 12.º n.º 1 · 13.º n.º 1 |
-| Bem móvel usado | 3 years, reducible to **18 months** by express agreement | 2 years | 12.º n.º 3 |
+| Bem móvel usado | 3 years, reducible to **18 months** by express agreement | 2 years; **1 year** if cut to 18 months | 12.º n.º 3 · 13.º n.º 3 |
 | Recondicionado | 3 years, disclosure mandatory on the invoice | 2 years | 12.º |
-| Bem imóvel | 10 yrs structural / 5 yrs other | 2 years | 23.º n.º 1 |
+| Bem imóvel | 10 yrs structural / 5 yrs other | **the whole period** | 23.º n.os 1 and 4 |
 | **Serviço comum** | **outside DL 84/2021 entirely** | — | 1.º |
 
 In years 1–2 the **seller** must prove the defect wasn't there at delivery. From 2 to 3 you
 still have rights but **you** carry the burden of proof — same receipt, materially weaker
 position. That gap is why the calendar emits **two** events per purchase, not one.
 
-There is **no deadline to report a defect** (art. 12.º n.º 5, abolished) — but once you
+There is **no deadline to report a defect** (the DL removed it — preamble; art. 12.º n.º 5 only asks for a provable means) — but once you
 report it, rights lapse **2 years later** (art. 17.º n.º 1).
 
 ## Install
@@ -127,7 +127,7 @@ python scripts/fatura.py --selftest        # AT worked examples + 22 adversarial
 python scripts/garantia.py --selftest      # DL 84/2021 periods + RFC 5545 iCal
 python scripts/planilha.py --selftest      # three sheets, CSV fallback
 python scripts/offline_audit.py --selftest # prove the privacy audit can fail
-python scripts/sweep.py                    # 56 checks
+python scripts/sweep.py                    # 61 checks
 ```
 
 All exit `0`. Try it with your Wi-Fi off.

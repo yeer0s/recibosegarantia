@@ -72,9 +72,9 @@ answer and it is **wrong for Portugal**:
 | Kind | Liability | Presumption | Article |
 |---|---|---|---|
 | Bem móvel novo | **3 years** | 2 years | 12.º n.º 1 · 13.º n.º 1 |
-| Bem móvel usado | 3 years, **reducible to 18 months by express agreement** | 2 years | 12.º n.º 3 |
+| Bem móvel usado | 3 years, **reducible to 18 months by express agreement** | 2 years; **1 year** if cut to 18 months | 12.º n.º 3 · 13.º n.º 3 |
 | Recondicionado | 3 years (disclosure mandatory on the invoice) | 2 years | 12.º |
-| Bem imóvel | 10 yrs structural / 5 yrs other | 2 years | 23.º n.º 1 |
+| Bem imóvel | 10 yrs structural / 5 yrs other | **the whole period** | 23.º n.os 1 and 4 |
 | Conteúdo/serviço digital | own regime — **not modelled** | — | — |
 | **Serviço comum** | **outside DL 84/2021 entirely** | — | 1.º |
 
@@ -82,7 +82,7 @@ The 2-vs-3 gap is the thing nobody knows and the whole point of the calendar. In
 the **seller** must prove the defect was not there at delivery. From 2 to 3 you still have
 rights but **you** carry the burden of proof — same receipt, materially weaker position.
 
-There is **no deadline to report a defect** (art. 12.º n.º 5, abolished), but once you do
+There is **no deadline to report a defect** (the DL removed it — preamble; art. 12.º n.º 5 only asks for a provable means), but once you do
 report it, rights lapse **2 years later** (art. 17.º n.º 1).
 
 ⚠️ Periods run from **delivery**, not the invoice date. If only the invoice date is known
@@ -98,7 +98,9 @@ user cannot actually make is worse than no reminder.
 3. The fault must not be misuse, normal wear, accident, or unauthorised repair.
 4. Report by a **provable means** — letter, email, anything evidenced (art. 12.º n.º 5).
 5. After reporting, rights lapse in **2 years** (art. 17.º n.º 1).
-6. In the first 2 years the **seller** bears the burden of proof; after that, you do.
+6. In the first 2 years the **seller** bears the burden of proof; after that, you do
+   (1 year for a used good cut to 18 months, art. 13.º n.º 3; the whole period for a
+   bem imóvel, art. 23.º n.º 4).
 7. The clock runs from **delivery**.
 
 ## The gates
@@ -108,7 +110,7 @@ python scripts/fatura.py --selftest      # AT worked examples + 22 adversarial c
 python scripts/garantia.py --selftest    # DL 84/2021 periods + iCal (RFC 5545)
 python scripts/planilha.py --selftest    # three sheets, CSV fallback path
 python scripts/offline_audit.py --selftest && python scripts/offline_audit.py
-python scripts/sweep.py                  # 56 checks
+python scripts/sweep.py                  # 61 checks
 ```
 
 ### Why the fixtures are the AT's own
@@ -187,6 +189,31 @@ mowei.pt is the author's site, cited as a next step and attribution — **never 
 for a statutory figure.** Do not do that.
 
 ## Changelog
+
+- **v1.0.2 (2026-09-28)** — **two presumption periods were wrong, and the law behind every
+  period now ships with the code.** Found by the weekly staleness sweep, by capturing
+  DL 84/2021 verbatim for the first time and reading each constant against it.
+  - **Bem móvel usado with the 18-month agreement:** the burden-of-proof date used the
+    2 years of art. 13.º n.º 1. Art. 13.º n.º 3 makes it **one year** in exactly that
+    case. The old output was impossible on its face — for a 2026-02-14 delivery it said
+    the burden moved on 2028-02-14, six months after the guarantee itself ended on
+    2027-08-14 — and the self-test asserted that date. It now says 2027-02-14, and a new
+    self-test property requires that no presumption ever outlives its guarantee.
+  - **Bem imóvel:** the presumption was 2 years. Art. 23.º n.º 4 extends it over the
+    **whole** period of n.º 1 — 10 years for structural elements, 5 for the rest. A home
+    buyer was being told the burden of proof moved to them 8 years early. `compute()` now
+    returns `presuncao_termina_estrutural` / `presuncao_termina_outros` and says why.
+  - **"No deadline to report a defect"** was cited to art. 12.º n.º 5, which only says the
+    report must be made by a provable means. The rule is real, but its source is the
+    DL's preamble ("Eliminou-se ainda a obrigação … de denunciar o defeito dentro de
+    determinado prazo"). Citation corrected everywhere.
+  - New `assets/law/dl-84-2021.md`: arts. 1.º, 12.º, 13.º, 17.º and 23.º and that preamble
+    sentence, from the Diário da República, each article checked by sha256 against the
+    page text. The DR publishes no consolidated version and the PGDLisboa compilation
+    records no amendment, so the original act is the text in force.
+  - New checks: `law-usado-acordo-presuncao-1-ano`, `law-imovel-presuncao-todo-o-prazo`,
+    `law-capture-integrity`, `law-articles-captured`, and `law-anchors-verbatim`, which
+    ties each statutory constant to the exact phrase it is read from. 56 → 61 checks.
 
 - **v1.0.1 (2026-09-28)** — **the gate's `--self-test` was not running.** Found by the
   weekly staleness sweep, which had already caught the identical bug in the sibling repos

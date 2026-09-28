@@ -12,6 +12,7 @@ check was structural.
 
 import argparse
 import contextlib
+import hashlib
 import io
 import json
 import os
@@ -117,6 +118,46 @@ def law_checks():
           "art. 13.o n.o 1 - the date most people do not know about")
     check("law-usado-18-meses", k["bem_movel_usado"]["liability_months_if_agreed"] == 18,
           "art. 12.o n.o 3, only by express agreement")
+    check("law-usado-acordo-presuncao-1-ano",
+          k["bem_movel_usado"]["presumption_months_if_agreed"] == 12,
+          "art. 13.o n.o 3 - with the 18-month agreement the presumption is 1 year")
+    check("law-imovel-presuncao-todo-o-prazo",
+          k["bem_imovel"].get("presumption_whole_period") is True
+          and k["bem_imovel"]["presumption_months"] is None,
+          "art. 23.o n.o 4 - not the 2 years of art. 13.o")
+
+    # The statute travels with the code. The constants above are checked against
+    # the CAPTURED TEXT, not against themselves: each anchor is the verbatim phrase
+    # the constant is read from, so a constant and its law cannot drift apart
+    # while both stay internally consistent.
+    lei = open(os.path.join(ROOT, "assets", "law", "dl-84-2021.md"),
+               encoding="utf-8").read()
+    parts = lei.split("\n---\n\n", 1)
+    m = re.search(r"sha256/16:\*\*\s*\|\s*([0-9a-f]{16})", lei)
+    check("law-capture-integrity",
+          bool(m) and len(parts) == 2 and m.group(1) == hashlib.sha256(
+              parts[1].rstrip("\n").encode("utf-8")).hexdigest()[:16],
+          "assets/law/dl-84-2021.md matches its recorded digest"
+          if m else "NO DIGEST FOUND (check cannot run)")
+    missing = [a for a in ("1.º", "12.º", "13.º", "17.º", "23.º")
+               if "### Artigo %s " % a not in lei]
+    check("law-articles-captured", not missing,
+          "arts. 1.º, 12.º, 13.º, 17.º, 23.º" if not missing else "MISSING %s" % missing)
+    anchors = {
+        "law-movel-3-anos": "no prazo de três anos a contar da entrega do bem",
+        "law-presuncao-2-anos": "num prazo de dois anos a contar da data de entrega",
+        "law-usado-18-meses": "pode ser reduzido a 18 meses",
+        "law-usado-acordo-presuncao-1-ano": "o prazo previsto no n.º 1 é de um ano",
+        "law-imovel-10-e-5": "10 anos, em relação a faltas de conformidade",
+        "law-imovel-presuncao-todo-o-prazo":
+            "se manifeste no prazo referido no n.º 1 presume-se existente aquando da entrega do bem imóvel",
+        "caducidade-2-anos": "caducam decorridos dois anos a contar da data da comunicação",
+        "sem-prazo-de-denuncia": "Eliminou-se ainda a obrigação que pendia sobre o consumidor de denunciar o defeito",
+    }
+    absent = [n for n, a in anchors.items() if a not in lei]
+    check("law-anchors-verbatim", not absent,
+          "%d constants each tied to the phrase they are read from" % len(anchors)
+          if not absent else "phrase not in the capture: %s" % absent)
     check("law-imovel-10-e-5", k["bem_imovel"]["liability_months"] == 120 and
           k["bem_imovel"]["liability_months_non_structural"] == 60, "art. 23.o n.o 1")
     check("law-servico-out-of-scope", k["servico"]["liability_months"] is None and

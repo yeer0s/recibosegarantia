@@ -101,9 +101,9 @@ habitual e está **errada para Portugal**:
 | Tipo | Responsabilidade | Presunção | Artigo |
 |---|---|---|---|
 | Bem móvel novo | **3 anos** | 2 anos | 12.º n.º 1 · 13.º n.º 1 |
-| Bem móvel usado | 3 anos, reduzível a **18 meses** por acordo expresso | 2 anos | 12.º n.º 3 |
+| Bem móvel usado | 3 anos, reduzível a **18 meses** por acordo expresso | 2 anos; **1 ano** se reduzido a 18 meses | 12.º n.º 3 · 13.º n.º 3 |
 | Recondicionado | 3 anos, menção obrigatória na fatura | 2 anos | 12.º |
-| Bem imóvel | 10 anos estrutural / 5 anos restantes | 2 anos | 23.º n.º 1 |
+| Bem imóvel | 10 anos estrutural / 5 anos restantes | **todo o prazo** | 23.º n.os 1 e 4 |
 | **Serviço comum** | **fora do âmbito do DL 84/2021** | — | 1.º |
 
 Nos primeiros 2 anos é o **vendedor** que tem de provar que o defeito não existia na
@@ -111,7 +111,7 @@ entrega. Dos 2 aos 3 continuas a ter direitos, mas a prova passa a ser **tua** �
 recibo, uma posição materialmente mais fraca. É por isso que o calendário emite **dois**
 eventos por compra.
 
-**Não há prazo para denunciar o defeito** (art. 12.º n.º 5, abolido) — mas depois de
+**Não há prazo para denunciar o defeito** (o DL eliminou-o — preâmbulo; o art. 12.º n.º 5 só exige um meio que faça prova) — mas depois de
 denunciares, os direitos caducam **2 anos** depois (art. 17.º n.º 1).
 
 ## Instalação
@@ -129,7 +129,7 @@ python scripts/fatura.py --selftest        # exemplos da AT + 22 casos adversari
 python scripts/garantia.py --selftest      # prazos DL 84/2021 + iCal RFC 5545
 python scripts/planilha.py --selftest      # três folhas, fallback CSV
 python scripts/offline_audit.py --selftest # provar que a auditoria consegue falhar
-python scripts/sweep.py                    # 56 verificações
+python scripts/sweep.py                    # 61 verificações
 ```
 
 Todos saem com `0`. Experimenta com o Wi-Fi desligado.

@@ -26,8 +26,12 @@ Legal basis, read from the consolidated text of DL 84/2021:
   art. 12.o n.o 1  - bens moveis: 3 years from DELIVERY
   art. 12.o n.o 3  - bens moveis USADOS: reducible to 18 months by agreement
   art. 13.o n.o 1  - defect presumed pre-existing for 2 years (burden on seller)
+  art. 13.o n.o 3  - ONE year when a used good's period was cut to 18 months
+  art. 23.o n.o 4  - immovables: the presumption covers the WHOLE 10/5-year period
   art. 17.o n.o 1  - rights lapse 2 years after the defect is communicated
-  art. 12.o n.o 5  - NO deadline to report a defect; that requirement was abolished
+  art. 12.o n.o 5  - the defect must be reported by a provable means
+  preambulo        - NO deadline to report a defect; the DL removed it
+Verbatim text: assets/law/dl-84-2021.md.
   art. 1.o         - scope is goods, immovables, and digital content/services.
                      Ordinary services (repairs, haircuts, consultancy) are OUTSIDE.
 
@@ -52,8 +56,10 @@ KINDS = {
         "liability_months": 36,
         "liability_months_if_agreed": 18,
         "presumption_months": 24,
+        "presumption_months_if_agreed": 12,
         "basis": "DL 84/2021 art. 12.o n.o 3 - 3 anos, reduzivel a 18 meses "
-                 "POR ACORDO EXPRESSO entre as partes. Sem acordo, valem os 3 anos.",
+                 "POR ACORDO EXPRESSO entre as partes. Sem acordo, valem os 3 anos. "
+                 "Com acordo, a presuncao passa a 1 ano (art. 13.o n.o 3).",
         "requires_confirmation": "Houve acordo expresso a reduzir o prazo para 18 meses?",
     },
     "bem_movel_recondicionado": {
@@ -67,9 +73,15 @@ KINDS = {
         "label": "Bem imovel",
         "liability_months": 120,
         "liability_months_non_structural": 60,
-        "presumption_months": 24,
+        # Art. 23.o n.o 4: the presumption runs for the WHOLE period of n.o 1, not
+        # the 2 years of art. 13.o, which governs movable goods. Until v1.0.2 this
+        # said 24 and told a home buyer the burden of proof moved to them 8 years
+        # early for a structural defect.
+        "presumption_months": None,
+        "presumption_whole_period": True,
         "basis": "DL 84/2021 art. 23.o n.o 1 - 10 anos elementos estruturais, "
-                 "5 anos restantes defeitos.",
+                 "5 anos restantes defeitos; presuncao durante todo o prazo "
+                 "(art. 23.o n.o 4).",
     },
     "conteudo_digital": {
         "label": "Conteudo ou servico digital",
@@ -108,11 +120,14 @@ PREREQUISITOS = [
     "reparacao por terceiros nao autorizados.",
     "A comunicacao do defeito ao vendedor deve ser feita por meio suscetivel de "
     "prova - carta, email, formulario com comprovativo (art. 12.o n.o 5). Nao "
-    "existe prazo para denunciar, mas a prova de o ter feito e essencial.",
+    "existe prazo para denunciar - o DL 84/2021 eliminou-o (preambulo) -, mas a "
+    "prova de o ter feito e essencial.",
     "Feita a comunicacao, os direitos caducam 2 anos depois (art. 17.o n.o 1). "
     "Comunicar cedo nao basta: e preciso agir dentro desses 2 anos.",
     "Nos primeiros 2 anos presume-se que o defeito ja existia na entrega e cabe "
-    "ao VENDEDOR provar o contrario. Depois disso, a prova passa a ser sua.",
+    "ao VENDEDOR provar o contrario (art. 13.o n.o 1). Depois disso, a prova passa "
+    "a ser sua. Excecoes: 1 ano num bem usado cujo prazo foi reduzido por acordo "
+    "(art. 13.o n.o 3); todo o prazo de garantia num imovel (art. 23.o n.o 4).",
     "O prazo conta da ENTREGA do bem, nao da data da fatura. Se comprou online "
     "ou por encomenda, use a data de entrega efetiva.",
 ]
@@ -169,27 +184,37 @@ def compute(delivery, kind="por_classificar", reduced_agreed=False,
         return out
 
     months = spec["liability_months"]
+    presumption, presumption_basis = spec["presumption_months"], "art. 13.o n.o 1"
     if kind == "bem_movel_usado" and reduced_agreed:
         months = spec["liability_months_if_agreed"]
+        # Art. 13.o n.o 3. Until v1.0.2 the 24 months of n.o 1 applied here too,
+        # so the "burden of proof moves" date fell AFTER the guarantee itself
+        # had ended (2028-02-14 vs 2027-08-14 for a 2026-02-14 delivery).
+        presumption, presumption_basis = (spec["presumption_months_if_agreed"],
+                                          "art. 13.o n.o 3")
         out["avisos"].append(
             "Prazo reduzido a 18 meses por acordo expresso (art. 12.o n.o 3). "
-            "Sem esse acordo seriam 3 anos.")
+            "Sem esse acordo seriam 3 anos. Com o acordo, a presuncao de que o "
+            "defeito ja existia dura 1 ano, nao 2 (art. 13.o n.o 3).")
     if kind == "bem_imovel":
         out["garantia_termina_estrutural"] = _plus_months(delivery, 120).isoformat()
         out["garantia_termina_outros"] = _plus_months(delivery, 60).isoformat()
+        out["presuncao_termina_estrutural"] = out["garantia_termina_estrutural"]
+        out["presuncao_termina_outros"] = out["garantia_termina_outros"]
         out["avisos"].append(
             "Imoveis tem dois prazos: 10 anos para elementos estruturais, "
-            "5 anos para os restantes defeitos (art. 23.o n.o 1).")
+            "5 anos para os restantes defeitos (art. 23.o n.o 1). Durante TODO "
+            "esse prazo presume-se que o defeito ja existia na entrega - a prova "
+            "nao passa para si ao fim de 2 anos (art. 23.o n.o 4).")
 
     if months:
         out["garantia_termina"] = _plus_months(delivery, months).isoformat()
-    if spec["presumption_months"]:
-        out["presuncao_termina"] = _plus_months(
-            delivery, spec["presumption_months"]).isoformat()
+    if presumption:
+        out["presuncao_termina"] = _plus_months(delivery, presumption).isoformat()
         out["avisos"].append(
             "Ate %s o VENDEDOR tem de provar que o defeito nao existia na entrega. "
             "Depois dessa data continua a ter direitos, mas a prova passa a ser sua "
-            "(art. 13.o n.o 1)." % out["presuncao_termina"])
+            "(%s)." % (out["presuncao_termina"], presumption_basis))
     return out
 
 
@@ -265,7 +290,7 @@ def _selftest():
     cases = [
         ("bem_movel_novo", False, "2028-02-14", "2029-02-14"),
         ("bem_movel_usado", False, "2028-02-14", "2029-02-14"),
-        ("bem_movel_usado", True, "2028-02-14", "2027-08-14"),
+        ("bem_movel_usado", True, "2027-02-14", "2027-08-14"),
         ("bem_movel_recondicionado", False, "2028-02-14", "2029-02-14"),
         ("servico", False, None, None),
         ("por_classificar", False, None, None),
@@ -297,6 +322,16 @@ def _selftest():
              compute(d, "bem_movel_novo")["avisos"])),
         ("imovel gives both periods",
          compute(d, "bem_imovel")["garantia_termina_estrutural"] == "2036-02-14"),
+        ("imovel presumption covers the whole period (art. 23.o n.o 4)",
+         compute(d, "bem_imovel")["presuncao_termina_estrutural"] == "2036-02-14"
+         and compute(d, "bem_imovel")["presuncao_termina_outros"] == "2031-02-14"
+         and compute(d, "bem_imovel")["presuncao_termina"] is None),
+        ("presumption never outlives the guarantee",
+         all(compute(d, k, reduced_agreed=r)["presuncao_termina"] is None
+             or compute(d, k, reduced_agreed=r)["garantia_termina"] is None
+             or compute(d, k, reduced_agreed=r)["presuncao_termina"]
+             <= compute(d, k, reduced_agreed=r)["garantia_termina"]
+             for k in KINDS for r in (False, True))),
         ("unknown kind raises", _raises(lambda: compute(d, "gelado"))),
         ("29 Feb -> 28 Feb, not 1 Mar (CC art. 279)",
          compute(date(2024, 2, 29), "bem_movel_novo")["garantia_termina"] == "2027-02-28"),
