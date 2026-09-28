@@ -49,6 +49,9 @@ GARANTIA_COLUMNS = [
     ("tipo_label", "Tipo de bem"),
     ("presuncao_termina", "Fim da presuncao (prova passa a ser sua)"),
     ("garantia_termina", "Fim da garantia legal"),
+    # Imoveis: the column above is the 10-year STRUCTURAL end; other defects end
+    # here, after 5 years (DL 84/2021 art. 23.o n.o 1 b)).
+    ("garantia_termina_outros", "Imovel: fim da garantia para defeitos nao estruturais"),
     ("data_e_estimada", "Data estimada da fatura?"),
     ("numero_documento", "N.o documento"),
     ("atcud", "ATCUD"),
@@ -94,6 +97,7 @@ def _garantia_row(rec, i):
         "tipo_label": g.get("tipo_label", ""),
         "presuncao_termina": g.get("presuncao_termina") or "",
         "garantia_termina": g.get("garantia_termina") or "",
+        "garantia_termina_outros": g.get("garantia_termina_outros") or "",
         "data_e_estimada": "SIM" if g.get("data_e_estimada") else "NAO",
         "numero_documento": rec.get("numero_documento", ""),
         "atcud": rec.get("atcud", ""),

@@ -207,6 +207,17 @@ for a statutory figure.** Do not do that.
     report must be made by a provable means. The rule is real, but its source is the
     DL's preamble ("Eliminou-se ainda a obrigação … de denunciar o defeito dentro de
     determinado prazo"). Citation corrected everywhere.
+  - **Bem imóvel exports:** the spreadsheet and the calendar carried only the 10-year date,
+    labelled "Fim da garantia legal … Depois desta data nao ha garantia legal". That date
+    covers **structural elements only**; every other defect is covered for 5 years
+    (art. 23.º n.º 1 b)). A non-structural defect in years 5–10 looked covered when it was
+    not. Both ends are now exported and labelled, and a self-test requires it. Found by
+    an adversarial review of this release, not by the capture.
+  - Smaller wording fixes from the same review: the presumption now carries its statutory
+    exception ("salvo se … incompatível com a natureza do bem ou do defeito"); the
+    18-month-agreement warning says a good advertised as *recondicionado* keeps 3 and 2
+    years; "no deadline to report" is qualified "within the guarantee period", as the
+    preamble says.
   - New `assets/law/dl-84-2021.md`: arts. 1.º, 12.º, 13.º, 17.º and 23.º and that preamble
     sentence, from the Diário da República, each article checked by sha256 against the
     page text. The DR publishes no consolidated version and the PGDLisboa compilation

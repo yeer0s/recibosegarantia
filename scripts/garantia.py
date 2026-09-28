@@ -119,9 +119,9 @@ PREREQUISITOS = [
     "O defeito nao pode resultar de mau uso, desgaste normal, acidente ou "
     "reparacao por terceiros nao autorizados.",
     "A comunicacao do defeito ao vendedor deve ser feita por meio suscetivel de "
-    "prova - carta, email, formulario com comprovativo (art. 12.o n.o 5). Nao "
-    "existe prazo para denunciar - o DL 84/2021 eliminou-o (preambulo) -, mas a "
-    "prova de o ter feito e essencial.",
+    "prova - carta, email, formulario com comprovativo (art. 12.o n.o 5). Dentro "
+    "do prazo de garantia nao existe prazo para denunciar - o DL 84/2021 "
+    "eliminou-o (preambulo) -, mas a prova de o ter feito e essencial.",
     "Feita a comunicacao, os direitos caducam 2 anos depois (art. 17.o n.o 1). "
     "Comunicar cedo nao basta: e preciso agir dentro desses 2 anos.",
     "Nos primeiros 2 anos presume-se que o defeito ja existia na entrega e cabe "
@@ -195,7 +195,9 @@ def compute(delivery, kind="por_classificar", reduced_agreed=False,
         out["avisos"].append(
             "Prazo reduzido a 18 meses por acordo expresso (art. 12.o n.o 3). "
             "Sem esse acordo seriam 3 anos. Com o acordo, a presuncao de que o "
-            "defeito ja existia dura 1 ano, nao 2 (art. 13.o n.o 3).")
+            "defeito ja existia dura 1 ano, nao 2 (art. 13.o n.o 3). Se o bem foi "
+            "anunciado como RECONDICIONADO, a reducao nao vale e mantem-se 3 anos "
+            "e 2 anos - classifique-o como recondicionado.")
     if kind == "bem_imovel":
         out["garantia_termina_estrutural"] = _plus_months(delivery, 120).isoformat()
         out["garantia_termina_outros"] = _plus_months(delivery, 60).isoformat()
@@ -212,7 +214,8 @@ def compute(delivery, kind="por_classificar", reduced_agreed=False,
     if presumption:
         out["presuncao_termina"] = _plus_months(delivery, presumption).isoformat()
         out["avisos"].append(
-            "Ate %s o VENDEDOR tem de provar que o defeito nao existia na entrega. "
+            "Ate %s o VENDEDOR tem de provar que o defeito nao existia na entrega, "
+            "salvo se isso for incompativel com a natureza do bem ou do defeito. "
             "Depois dessa data continua a ter direitos, mas a prova passa a ser sua "
             "(%s)." % (out["presuncao_termina"], presumption_basis))
     return out
@@ -234,15 +237,35 @@ def to_ical(rows, reminder_days=30, prodid="-//recibosegarantia//PT//EN"):
     n = 0
     for r in rows:
         g, desc = r.get("garantia") or {}, r.get("descricao", "compra")
-        for key, title, body in (
-            ("presuncao_termina", "Fim da presuncao (prova passa a ser sua)",
-             "Ate esta data o vendedor tinha de provar que o defeito nao existia "
-             "na entrega. A partir de agora a prova e sua. Se o bem tem defeito, "
-             "comunique JA, por escrito e com comprovativo."),
-            ("garantia_termina", "Fim da garantia legal",
-             "Termina a responsabilidade do vendedor por falta de conformidade "
-             "(DL 84/2021 art. 12.o). Depois desta data nao ha garantia legal."),
-        ):
+        if g.get("tipo") == "bem_imovel":
+            # Two guarantee ends, and the 10-year one covers ONLY structural
+            # elements (art. 23.o n.o 1). Until v1.0.2 only the 10-year date was
+            # exported, labelled "no guarantee after this date" - which told a
+            # buyer a non-structural defect in years 5-10 was still covered.
+            events = (
+                ("garantia_termina_outros",
+                 "Fim da garantia legal - defeitos NAO estruturais",
+                 "Termina a responsabilidade do vendedor pelas faltas de "
+                 "conformidade que nao sejam de elementos construtivos "
+                 "estruturais (DL 84/2021 art. 23.o n.o 1 b)). Ate aqui "
+                 "presume-se que o defeito ja existia na entrega (art. 23.o n.o 4)."),
+                ("garantia_termina_estrutural",
+                 "Fim da garantia legal - elementos estruturais",
+                 "Termina a responsabilidade do vendedor por faltas de conformidade "
+                 "de elementos construtivos estruturais (DL 84/2021 art. 23.o "
+                 "n.o 1 a)). Depois desta data nao ha garantia legal."),
+            )
+        else:
+            events = (
+                ("presuncao_termina", "Fim da presuncao (prova passa a ser sua)",
+                 "Ate esta data o vendedor tinha de provar que o defeito nao existia "
+                 "na entrega. A partir de agora a prova e sua. Se o bem tem defeito, "
+                 "comunique JA, por escrito e com comprovativo."),
+                ("garantia_termina", "Fim da garantia legal",
+                 "Termina a responsabilidade do vendedor por falta de conformidade "
+                 "(DL 84/2021 art. 12.o). Depois desta data nao ha garantia legal."),
+            )
+        for key, title, body in events:
             when = g.get(key)
             if not when:
                 continue
@@ -280,6 +303,14 @@ def to_ical(rows, reminder_days=30, prodid="-//recibosegarantia//PT//EN"):
             b = b" " + b[cut:]
         folded.append(b.decode("utf-8"))
     return "\r\n".join(folded) + "\r\n", n
+
+
+def _imovel_ical_ok(d):
+    ics, n = to_ical([{"descricao": "Apartamento", "atcud": "BBBB2222-1",
+                       "garantia": compute(d, "bem_imovel")}])
+    # Reminders fire 30 days before each end: 2031-01-15 (5 years) and 2036-01-15.
+    return (n == 2 and "20310115" in ics and "20360115" in ics
+            and "NAO estruturais" in ics and "elementos estruturais" in ics)
 
 
 def _selftest():
@@ -363,6 +394,8 @@ def _selftest():
         ("uid is unique per event",
          len({l for l in ics.split("\r\n") if l.startswith("UID:")}) == 2),
         ("alarm attached", ics.count("BEGIN:VALARM") == 2),
+        ("imovel exports BOTH guarantee ends, the 10-year one labelled structural",
+         _imovel_ical_ok(d)),
     ]
     for name, ok in ical_checks:
         failed += 0 if ok else 1
