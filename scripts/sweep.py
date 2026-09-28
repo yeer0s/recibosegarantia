@@ -10,6 +10,7 @@ check was structural.
     python sweep.py
 """
 
+import argparse
 import contextlib
 import io
 import json
@@ -184,18 +185,91 @@ def pii_check():
           if not bad else "FOUND %s" % bad)
 
 
-print("=" * 70)
-print("RECIBOS E GARANTIA - correctness gate")
-print("=" * 70)
-spec_checks()
-corpus_checks()
-engine_checks()
-law_checks()
-doc_checks()
-pii_check()
-fails = [r for r in results if not r[1]]
-print("-" * 70)
-print("SWEEP %s: %d/%d checks green%s"
-      % ("PASS" if not fails else "FAIL", len(results) - len(fails), len(results),
-         "" if not fails else " - DO NOT DELIVER until resolved"))
-sys.exit(1 if fails else 0)
+def run(quiet=False):
+    """One full pass over every check group. Returns the results list.
+
+    Was module-level straight-line code. It is a function now so that
+    ``--self-test`` can run the gate a second time against a deliberately
+    corrupted condition and demand that it goes red - a check nobody has
+    ever seen fail is indistinguishable from one that cannot.
+    """
+    del results[:]
+    with contextlib.redirect_stdout(io.StringIO() if quiet else sys.stdout):
+        print("=" * 70)
+        print("RECIBOS E GARANTIA - correctness gate")
+        print("=" * 70)
+        spec_checks()
+        corpus_checks()
+        engine_checks()
+        law_checks()
+        doc_checks()
+        pii_check()
+    return list(results)
+
+
+def self_test():
+    """Prove the gate can go red, and can come back green.
+
+    Corrupts, in memory only, the DL 84/2021 constant this gate cites for
+    new movable goods (36 months, art. 12.o n.o 1) - garantia.py on disk is
+    never touched - runs a second full pass, and requires the named law
+    check to be among the failures. Then restores and requires green again.
+    """
+    sys.path.insert(0, HERE)
+    import garantia
+
+    print("--- normal state ---")
+    base = run(quiet=True)
+    if any(not ok for _, ok, _ in base):
+        print("SELF-TEST ABORTED: the gate is already red")
+        return 1
+    print("%d/%d green" % (len(base), len(base)))
+
+    print("--- bem_movel_novo liability corrupted from 36 to 24 months ---")
+    orig = garantia.KINDS["bem_movel_novo"]["liability_months"]
+    garantia.KINDS["bem_movel_novo"]["liability_months"] = 24
+    try:
+        failed = [n for n, ok, _ in run(quiet=True) if not ok]
+    finally:
+        garantia.KINDS["bem_movel_novo"]["liability_months"] = orig
+    if "law-movel-3-anos" not in failed:
+        print("SELF-TEST FAILED: a stale liability period did not raise the alarm - "
+              "the 3-year guarantee on new movable goods could silently shrink to 2")
+        return 1
+    print("the gate caught the corrupted constant: %s" % ", ".join(failed))
+
+    print("--- restored ---")
+    if any(not ok for _, ok, _ in run(quiet=True)):
+        print("SELF-TEST FAILED: did not return to green")
+        return 1
+    print("green again")
+    print()
+    print("SELF-TEST OK - the gate knows how to fail and how to pass again")
+    return 0
+
+
+def main(argv):
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("-v", "--verbose", action="store_true",
+                    help="accepted for compatibility; every check already prints")
+    ap.add_argument("--self-test", action="store_true",
+                    help="prove the gate can go red, then come back green")
+    # argparse exits 2 on an unknown flag. That matters: this file used to ignore
+    # argv entirely, so `sweep.py --self-test` ran an ordinary sweep and exited 0
+    # - a self-test that never ran, reported as a pass. Found by the weekly
+    # repo-refresh staleness sweep (2026-09-28), which had already caught the
+    # identical bug in the sibling repos.
+    args = ap.parse_args(argv)
+    if args.self_test:
+        return self_test()
+    res = run()
+    fails = [r for r in res if not r[1]]
+    print("-" * 70)
+    print("SWEEP %s: %d/%d checks green%s"
+          % ("PASS" if not fails else "FAIL", len(res) - len(fails), len(res),
+             "" if not fails else " - DO NOT DELIVER until resolved"))
+    return 1 if fails else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))

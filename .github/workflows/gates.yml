@@ -56,6 +56,9 @@ jobs:
       - name: Unified gate
         run: python scripts/sweep.py
 
+      - name: Sweep self-test — prove the gate can go red on a corrupted DL 84/2021 constant
+        run: python scripts/sweep.py --self-test
+
   with-openpyxl:
     name: xlsx path · openpyxl installed
     runs-on: ubuntu-latest

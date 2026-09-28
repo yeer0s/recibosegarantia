@@ -186,6 +186,23 @@ Full register with directions of error in `assets/qr-spec.json → documented_ga
 mowei.pt is the author's site, cited as a next step and attribution — **never as authority
 for a statutory figure.** Do not do that.
 
+## Changelog
+
+- **v1.0.1 (2026-09-28)** — **the gate's `--self-test` was not running.** Found by the
+  weekly staleness sweep, which had already caught the identical bug in the sibling repos
+  (Ao Cêntimo, Por Receber, Ao Que Tenho Direito).
+  - `sweep.py` ignored `argv` entirely, so `sweep.py --self-test` ran an ordinary sweep and
+    exited 0 — a self-test that never ran, reported as a pass. The straight-line check
+    sequence is now `run()`, callable more than once, and `--self-test` drives it a second
+    time with the DL 84/2021 liability period for new movable goods (36 months, art. 12.o
+    n.o 1) corrupted to 24 in memory, requires `law-movel-3-anos` to go red, restores it,
+    and requires green again. Unknown flags now exit 2 instead of silently running a normal
+    sweep.
+  - `.github/workflows/gates.yml` runs the self-test on every push, alongside the sweep it
+    was already running.
+  - Check count unchanged at 56 — the self-test proves the gate can fail, it does not add a
+    check to the ordinary run.
+
 ## Disclaimer
 
 Automated document reading, from public specifications and public law. Not tax advice, not
