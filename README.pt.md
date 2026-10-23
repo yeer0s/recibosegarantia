@@ -114,6 +114,17 @@ eventos por compra.
 **Não há prazo para denunciar o defeito** (o DL eliminou-o — preâmbulo; o art. 12.º n.º 5 só exige um meio que faça prova) — mas depois de
 denunciares, os direitos caducam **2 anos** depois (art. 17.º n.º 1).
 
+**Pendente: o direito à reparação da UE.** A Diretiva (UE) 2024/1799 acrescenta um n.º 2-A
+ao artigo 10 da Diretiva (UE) 2019/771: se a conformidade for reposta por reparação, o
+período de responsabilidade do vendedor «é prorrogado uma vez por doze meses». Os
+Estados-Membros tinham de o aplicar a partir de 31 de julho de 2026, e só aos contratos de
+compra e venda celebrados a partir dessa data (artigo 21 da Diretiva (UE) 2024/1799). A 24
+de outubro de 2026 Portugal ainda não publicou nenhum diploma, e o DL 84/2021 nunca foi
+alterado (Diário da República, *Modificações*). Esta ferramenta segue a lei em vigor, por
+isso **não** soma esses doze meses. A forma como Portugal os vai transpor só se sabe quando o
+diploma sair — se um bem comprado a partir de 31 de julho de 2026 foi reparado ao abrigo da
+garantia, confirma se já saiu.
+
 ## Instalação
 
 ```bash

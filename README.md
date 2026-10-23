@@ -112,6 +112,16 @@ position. That gap is why the calendar emits **two** events per purchase, not on
 There is **no deadline to report a defect** (the DL removed it — preamble; art. 12.º n.º 5 only asks for a provable means) — but once you
 report it, rights lapse **2 years later** (art. 17.º n.º 1).
 
+**Pending: the EU right to repair.** Directive (EU) 2024/1799 inserts a n.º 2-A into
+article 10 of Directive (EU) 2019/771: when the goods are brought back into conformity by
+repair, the seller's liability period is extended once by twelve months. Member States had
+to apply it from 31 July 2026, and only to sales contracts concluded from that date (article
+21 of Directive (EU) 2024/1799). As of 24 October 2026 Portugal has published no diploma,
+and DL 84/2021 has never been amended (Diário da República, *Modificações*). This tool
+follows the law in force, so it does **not** add those twelve months. How Portugal
+transposes them is known only when the diploma is published — if an item bought on or after
+31 July 2026 was repaired under guarantee, check whether it has appeared.
+
 ## Install
 
 ```bash
